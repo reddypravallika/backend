@@ -61,6 +61,9 @@ const userSchema = mongoose.Schema(
     proofDocNo: {
       type: String,
     },
+    userType: {
+      type: String,
+    },
   },
   {
     timestamps: true,

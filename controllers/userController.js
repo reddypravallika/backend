@@ -1,12 +1,11 @@
-const User = require("../models/customerRegistrationSchema");
+const User = require("../models/userSchema");
 const Deposit = require("../models/depositSchema");
 const UserLoan = require("../models/userLoanSchema");
 const Withdrawal = require("../models/withdrawalSchema");
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
 
-// Controller functions for CRUD operations
-const welcomeUser = (req, res) => {
-  res.send("hello vivek!");
-};
+const JWT_SECRET_KEY = "Pass@123";
 
 const createUser = async (req, res) => {
   try {
@@ -31,12 +30,30 @@ const createUser = async (req, res) => {
       }
     }
 
-    const newData = { ...req.body, accountNumber: uniqueAccountNumber };
+    const hashedPassword = await bcrypt.hash(req.body.password, 10);
+    const newData = {
+      ...req.body,
+      accountNumber: uniqueAccountNumber,
+      password: hashedPassword,
+      type: "user",
+    };
 
-    // Create the user with the unique account number
     const user = new User(newData);
     await user.save();
-    res.status(201).json(user);
+    const token = jwt.sign(
+      { email: newData.email, accountNumber: newData.accountNumber },
+      JWT_SECRET_KEY
+    );
+    res.status(201).json({ token });
+  } catch (error) {
+    res.status(500).json({ name: "Internal Server Error", error });
+  }
+};
+
+const login = async (req, res) => {
+  try {
+    const users = await User.find();
+    res.status(200).json(users);
   } catch (error) {
     res.status(500).json({ error: "Internal Server Error" });
   }
@@ -195,7 +212,6 @@ const userLoanApplication = async (req, res) => {
 };
 
 module.exports = {
-  welcomeUser,
   createUser,
   getUsers,
   getUserByAccountNumber,
@@ -204,4 +220,5 @@ module.exports = {
   userDepositAmount,
   userwithdrawalAmount,
   userLoanApplication,
+  login,
 };
