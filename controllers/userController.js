@@ -4,9 +4,6 @@ const UserLoan = require("../models/userLoanSchema");
 const Withdrawal = require("../models/withdrawalSchema");
 
 // Controller functions for CRUD operations
-const welcomeUser = (req, res) => {
-  res.send("hello vivek!");
-};
 
 const createUser = async (req, res) => {
   try {

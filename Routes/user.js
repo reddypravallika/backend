@@ -13,8 +13,6 @@ const {
 
 const router = express.Router();
 
-router.post("/hello", welcomeUser);
-
 router.post("/user-register", createUser);
 
 router.get("/users", getUsers);
