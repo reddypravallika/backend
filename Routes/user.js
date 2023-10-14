@@ -1,7 +1,6 @@
 const express = require("express");
 const {
   createUser,
-  welcomeUser,
   getUsers,
   getUserByAccountNumber,
   updateUserByAccountNumber,
@@ -9,11 +8,14 @@ const {
   userDepositAmount,
   userwithdrawalAmount,
   userLoanApplication,
+  login,
 } = require("../controllers/userController");
 
 const router = express.Router();
 
 router.post("/user-register", createUser);
+
+router.post("/user-login", login);
 
 router.get("/users", getUsers);
 
