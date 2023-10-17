@@ -5,13 +5,10 @@ const Withdrawal = require("../models/withdrawalSchema");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 
-<<<<<<< HEAD
-// Controller functions for CRUD operations
-=======
 const JWT_SECRET_KEY = "Pass@123";
->>>>>>> 7cb9bd349f3dbcd5d1f00224c2774c97d24fe731
 
 const createUser = async (req, res) => {
+  console.log(req?.body);
   try {
     let uniqueAccountNumber;
     let isUnique = false;
@@ -39,7 +36,7 @@ const createUser = async (req, res) => {
       ...req.body,
       accountNumber: uniqueAccountNumber,
       password: hashedPassword,
-      type: "user",
+      userType: "user",
     };
 
     const user = new User(newData);
@@ -50,22 +47,76 @@ const createUser = async (req, res) => {
     );
     res.status(201).json({ token });
   } catch (error) {
+    console.log(error, "vivek");
+    res.status(500).json({ name: "Internal Server Error", error });
+  }
+};
+
+const createAdminUser = async (req, res) => {
+  try {
+    const hashedPassword = await bcrypt.hash(req.body.password, 10);
+    const newData = {
+      ...req.body,
+      password: hashedPassword,
+      userType: "admin",
+    };
+
+    const user = new User(newData);
+    await user.save();
+    res.status(201).json(user);
+  } catch (error) {
+    console.log(error, "vivek");
     res.status(500).json({ name: "Internal Server Error", error });
   }
 };
 
 const login = async (req, res) => {
   try {
-    const users = await User.find();
-    res.status(200).json(users);
+    const { email, password } = req?.body;
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const isPasswordMatched = await bcrypt.compare(password, user?.password);
+
+    if (!isPasswordMatched) {
+      return res.status(401).json({ message: "Password is wrong!" });
+    }
+
+    const token = jwt.sign(
+      { email: user.email, accountNumber: user.accountNumber },
+      JWT_SECRET_KEY
+    );
+    res.status(200).json({ token });
   } catch (error) {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
+const userProfile = async (req, res) => {
+  try {
+    const authorization = req.headers["authorization"];
+    const token = authorization.split(" ")[1];
+    const decoded = jwt.verify(token, JWT_SECRET_KEY);
+
+    const user = await User.findOne({ email: decoded?.email });
+
+    if (!user) {
+      return res.status(401).json({ message: "Password is wrong!" });
+    }
+
+    return res.status(200).json(user);
+  } catch (error) {
+    console.log(error, "error");
+    res.status(500).json({ message: "Internal Server Error", error });
+  }
+};
+
 const getUsers = async (req, res) => {
   try {
-    const users = await User.find();
+    const users = await User.find({ userType: "user" });
     res.status(200).json(users);
   } catch (error) {
     res.status(500).json({ error: "Internal Server Error" });
@@ -215,6 +266,15 @@ const userLoanApplication = async (req, res) => {
   }
 };
 
+const getLoans = async (req, res) => {
+  try {
+    const loans = await UserLoan.find();
+    res.status(200).json(loans);
+  } catch (error) {
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
 module.exports = {
   createUser,
   getUsers,
@@ -225,4 +285,7 @@ module.exports = {
   userwithdrawalAmount,
   userLoanApplication,
   login,
+  userProfile,
+  createAdminUser,
+  getLoans,
 };
