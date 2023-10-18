@@ -12,6 +12,8 @@ const {
   userProfile,
   createAdminUser,
   getLoans,
+  userRequests,
+  getUserLoan,
 } = require("../controllers/userController");
 
 const router = express.Router();
@@ -28,6 +30,8 @@ router.get("/users", getUsers);
 
 router.get("/loans", getLoans);
 
+router.get("/loan/:accountNumber", getUserLoan);
+
 router.get("/user/:accountNumber", getUserByAccountNumber);
 
 router.put("/user/:accountNumber", updateUserByAccountNumber);
@@ -39,5 +43,7 @@ router.post("/deposit", userDepositAmount);
 router.post("/withdrawal", userwithdrawalAmount);
 
 router.post("/apply-loan", userLoanApplication);
+
+router.post("/user-requests", userRequests);
 
 module.exports = router;

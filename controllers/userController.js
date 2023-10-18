@@ -268,10 +268,29 @@ const userLoanApplication = async (req, res) => {
 
 const getLoans = async (req, res) => {
   try {
-    const loans = await UserLoan.find();
+    const loan = await UserLoan.find();
+    res.status(200).json(loan);
+  } catch (error) {
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+const getUserLoan = async (req, res) => {
+  const { accountNumber } = req.params;
+  try {
+    const loans = await UserLoan.findOne({ accountNumber });
     res.status(200).json(loans);
   } catch (error) {
     res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+const userRequests = async (req, res) => {
+  try {
+    console.log(req.body);
+    res.send("hello");
+  } catch (error) {
+    console.log(error);
   }
 };
 
@@ -288,4 +307,6 @@ module.exports = {
   userProfile,
   createAdminUser,
   getLoans,
+  userRequests,
+  getUserLoan,
 };
