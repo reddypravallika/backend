@@ -47,7 +47,7 @@ const createUser = async (req, res) => {
     );
     res.status(201).json({ token });
   } catch (error) {
-    console.log(error, "vivek");
+    
     res.status(500).json({ name: "Internal Server Error", error });
   }
 };
@@ -65,7 +65,7 @@ const createAdminUser = async (req, res) => {
     await user.save();
     res.status(201).json(user);
   } catch (error) {
-    console.log(error, "vivek");
+    ;
     res.status(500).json({ name: "Internal Server Error", error });
   }
 };
@@ -100,9 +100,8 @@ const userProfile = async (req, res) => {
     const authorization = req.headers["authorization"];
     const token = authorization.split(" ")[1];
     const decoded = jwt.verify(token, JWT_SECRET_KEY);
-
     const user = await User.findOne({ email: decoded?.email });
-
+    
     if (!user) {
       return res.status(401).json({ message: "Password is wrong!" });
     }
@@ -169,10 +168,11 @@ const deleteUserByAccountNumber = async (req, res) => {
   }
 };
 
-const userDepositAmount = async (req, res) => {
+const   userDepositAmount = async (req, res) => {
   try {
     const { accountNumber, depositAmount, depositorMobile, accountType } =
       req.body;
+      console.log(req.body,"hi")
     const deposit = new Deposit({
       accountNumber,
       depositAmount,
@@ -188,18 +188,57 @@ const userDepositAmount = async (req, res) => {
 
 const userwithdrawalAmount = async (req, res) => {
   try {
+
     const { accountNumber, withdrawAmount, mobileNumber } = req.body;
+    const findAccount=await User.findOne(accountNumber)
+    if(!findAccount){
+      return res.status(401).json({ message: "Account not found!" });
+    }
+    
     const withdrawal = new Withdrawal({
       accountNumber,
       withdrawAmount,
       mobileNumber,
     });
     await withdrawal.save();
-    res.status(201).json(withdrawal);
+
+    res.status(201).json({withdrawal,findAccount});
   } catch (error) {
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({ error: "Internal Server Error",error:error });
   }
+
 };
+
+const userWithdrawalAmountss=async(req,res)=>{
+  try {
+    const { accountNumber, withdrawAmount, mobileNumber } = req.body;
+    const findAccount=await User.findOne({accountNumber:accountNumber})
+    if(!findAccount){
+      return res.status(401).json({ message: "Account not found!" });
+    }
+        if(withdrawAmount>findAccount.initialDeposit){
+          res.status(400).json({message:"Insuficient balance "})
+        }
+        const bal=findAccount.initialDeposit-withdrawAmount
+        const updateBalance = await User.findOneAndUpdate(
+          { _id: findAccount._id },
+          { initialDeposit: bal}, 
+          { new: true, runValidators: true, useFindAndModify: false }
+        );
+      
+
+    // const withdrawal = new Withdrawal({
+    //   accountNumber,
+    //   withdrawAmount,
+    //   mobileNumber,
+    // });
+ 
+    // await withdrawal.save();
+    res.status(201).json({updateBalance,message:"amount has been withdraw"});
+  } catch (error) {
+    res.status(500).json({ error: "Internal Server Error",error:error });
+  }
+}
 
 const userLoanApplication = async (req, res) => {
   try {
@@ -283,7 +322,7 @@ const getUserLoan = async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: "Internal Server Error" });
   }
-};
+};  
 
 const userRequests = async (req, res) => {
   try {
@@ -309,4 +348,5 @@ module.exports = {
   getLoans,
   userRequests,
   getUserLoan,
+  userWithdrawalAmountss
 };
